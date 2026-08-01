@@ -159,13 +159,16 @@ class CodeQuestApp {
         this.timeLeft = 60;
         this.lives = 3;
         this.gameQuestionCount = 0;
-        this.askedQuestionIds.clear(); // Limpiar preguntas hechas en esta partida
+        this.askedQuestionIds.clear(); 
 
         const modeInd = document.getElementById('mode-indicator');
         if (modeInd) modeInd.innerText = mode.toUpperCase();
         
-        document.getElementById('timer-box').style.display = (mode === 'time') ? 'block' : 'none';
-        document.getElementById('lives-box').style.display = (mode === 'survival') ? 'block' : 'none';
+        const timerBox = document.getElementById('timer-box');
+        if (timerBox) timerBox.style.display = (mode === 'time') ? 'block' : 'none';
+
+        const livesBox = document.getElementById('lives-box');
+        if (livesBox) livesBox.style.display = (mode === 'survival') ? 'block' : 'none';
 
         if (mode === 'time') this.startTimer();
 
@@ -187,8 +190,7 @@ class CodeQuestApp {
         }, 1000);
     }
 
-   nextQuestion() {
-        // Verificar si la partida llegó a su límite de preguntas
+    nextQuestion() {
         if (this.selectedMode !== 'time' && this.selectedMode !== 'survival') {
             if (this.gameQuestionCount >= this.MAX_QUESTIONS_PER_GAME) {
                 this.endGame("🎉 ¡Partida completada! Has respondido las 10 preguntas.");
@@ -199,22 +201,18 @@ class CodeQuestApp {
         const expBox = document.getElementById('explanation-box');
         if (expBox) expBox.classList.add('hidden');
 
-        // Filtrar preguntas que NO se hayan hecho en esta partida
         let availableQuestions = this.questions.filter(q => !this.askedQuestionIds.has(q.id));
 
-        // Si se agotaron todas las preguntas disponibles del banco:
         if (availableQuestions.length === 0) {
             this.askedQuestionIds.clear();
             availableQuestions = [...this.questions];
         }
 
-        // Elegir pregunta aleatoria
         const randomIndex = Math.floor(Math.random() * availableQuestions.length);
         this.currentQuestion = { ...availableQuestions[randomIndex] };
         this.askedQuestionIds.add(this.currentQuestion.id);
         this.gameQuestionCount++;
 
-        // Modo Experto (Ocultar palabras clave)
         if (this.selectedMode === 'expert') {
             const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
             let maskCode = this.currentQuestion.code;
@@ -225,7 +223,6 @@ class CodeQuestApp {
             this.currentQuestion.code = maskCode;
         }
 
-        // Mostrar en la interfaz asegurando que solo se escriba en el elemento correcto
         const codeElement = document.getElementById('code-snippet');
         if (codeElement) {
             codeElement.textContent = this.currentQuestion.code;
@@ -233,60 +230,6 @@ class CodeQuestApp {
             if (window.Prism) { 
                 try { Prism.highlightElement(codeElement); } catch(e){} 
             }
-        }
-
-        const diffBadge = document.getElementById('difficulty-badge');
-        if (diffBadge) {
-            diffBadge.innerText = `${this.currentQuestion.difficulty} (${this.gameQuestionCount}/${this.MAX_QUESTIONS_PER_GAME})`;
-        }
-
-        const optionsContainer = document.getElementById('options-container');
-        if (optionsContainer) {
-            optionsContainer.innerHTML = '';
-            this.currentQuestion.options.forEach((option, idx) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerHTML = `<span>[${idx + 1}]</span> ${option}`;
-                btn.onclick = () => this.handleAnswer(option, btn);
-                optionsContainer.appendChild(btn);
-            });
-        }
-    }
-        const expBox = document.getElementById('explanation-box');
-        if (expBox) expBox.classList.add('hidden');
-
-        // Filtrar preguntas que NO se hayan hecho en esta partida
-        let availableQuestions = this.questions.filter(q => !this.askedQuestionIds.has(q.id));
-
-        // Si se agotaron todas las preguntas disponibles del banco:
-        if (availableQuestions.length === 0) {
-            this.askedQuestionIds.clear(); // Reiniciar pool de vistas
-            availableQuestions = [...this.questions];
-        }
-
-        // Elegir pregunta aleatoria dentro del conjunto no repetido
-        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-        this.currentQuestion = { ...availableQuestions[randomIndex] };
-        this.askedQuestionIds.add(this.currentQuestion.id);
-        this.gameQuestionCount++;
-
-        // Modo Experto (Ocultar palabras clave)
-        if (this.selectedMode === 'expert') {
-            const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
-            let maskCode = this.currentQuestion.code;
-            keywords.forEach(kw => {
-                const reg = new RegExp(`\\b${kw}\\b`, 'gi');
-                maskCode = maskCode.replace(reg, "???");
-            });
-            this.currentQuestion.code = maskCode;
-        }
-
-        // Mostrar en la interfaz
-        const codeElement = document.getElementById('code-snippet');
-        if (codeElement) {
-            codeElement.textContent = this.currentQuestion.code;
-            codeElement.className = `language-clike`;
-            if (window.Prism) { try { Prism.highlightElement(codeElement); } catch(e){} }
         }
 
         const diffBadge = document.getElementById('difficulty-badge');
@@ -454,7 +397,6 @@ class CodeQuestApp {
             item.onclick = () => this.showLearningDetail(lang, item);
             sidebar.appendChild(item);
             
-            // Cargar el primer lenguaje por defecto
             if (index === 0) this.showLearningDetail(lang, item);
         });
     }
@@ -523,47 +465,4 @@ class CodeQuestApp {
                 ctx.fillRect(p.x, p.y, p.size, p.size);
             });
             if (frame++ < 35) requestAnimationFrame(animate);
-            else ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-        animate();
-    }
-
-    setupKeyboardListeners() {
-        window.addEventListener('keydown', (e) => {
-            const gameScreen = document.getElementById('screen-game');
-            if (!gameScreen || !gameScreen.classList.contains('active')) return;
-
-            if (['1', '2', '3', '4'].includes(e.key)) {
-                const index = parseInt(e.key) - 1;
-                const btns = document.querySelectorAll('.option-btn');
-                if (btns[index]) btns[index].click();
-            }
-        });
-    }
-}
-
-window.app = {
-    showScreen: function(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const target = document.getElementById(screenId);
-        if (target) target.classList.add('active');
-    },
-    showModeSelect: function() {
-        this.showScreen('screen-modes');
-    },
-    openLearningMode: function() {
-        this.showScreen('screen-learning');
-        // Tu lógica para cargar los lenguajes...
-    },
-    startGame: function(mode) {
-        this.showScreen('screen-game');
-        // Tu lógica para iniciar partida...
-    },
-    endGame: function(msg) {
-        this.showScreen('screen-home');
-    },
-    nextQuestion: function() {
-        // Tu lógica de siguiente pregunta...
-    }
-};
-
+            else ctx.clearRect(0, 0, 
