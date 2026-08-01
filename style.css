@@ -1,3 +1,6 @@
+/* ==========================================================================
+   PALETA DE COLORES PASTEL RETRO-TECH
+   ========================================================================== */
 :root {
     --bg-yellow: #FFF3A6;
     --bg-blue-light: #BEEBFF;
@@ -483,4 +486,4 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 999;
-}
+    }
