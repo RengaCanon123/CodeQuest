@@ -1,158 +1,201 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodeQuest</title>
-  
-  <!-- FUENTES RETRO Y DE CÓDIGO -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Pixelify+Sans:wght@400;700&family=VT323&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="style.css?v=2000">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeQuest ✨ - Pixel Programming Quiz</title>
+    <!-- Fuentes Pixel de Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=VT323&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Prism.js para sintaxis de código sin backend -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- VENTANA RETRO CONTENEDORA PRINCIPAL -->
-  <div class="retro-window">
-    
-    <!-- BARRA SUPERIOR DE CONSOLA -->
-    <div class="window-header">
-      <div class="header-controls">
-        <span class="btn-dot close"></span>
-        <span class="btn-dot minimize"></span>
-        <span class="btn-dot expand"></span>
-      </div>
-      <div class="header-title">🎮 CodeQuest.exe</div>
-      <div class="user-badge">
-        <span id="nav-level">NV. 1</span>
-        <div class="mini-xp-bar">
-          <div id="mini-xp-fill"></div>
-        </div>
-      </div>
+    <div id="app-container" class="retro-window">
+        <!-- Header / Barra de Estado tipo Consola Portable -->
+        <header class="window-header">
+            <div class="header-controls">
+                <span class="btn-dot close"></span>
+                <span class="btn-dot minimize"></span>
+                <span class="btn-dot expand"></span>
+            </div>
+            <div class="header-title">💻 CodeQuest v1.0.0 -- -zsh</div>
+            <div class="user-badge" id="user-level-badge">
+                <span id="nav-level">NV. 1</span>
+                <div class="mini-xp-bar"><div id="mini-xp-fill" style="width: 0%;"></div></div>
+            </div>
+        </header>
+
+        <!-- PANTALLA DE INICIO -->
+        <section id="screen-home" class="screen active">
+            <div class="hero">
+                <div class="floating-icons">✨ 💻 🩵 ⚡ 🌼</div>
+                <h1 class="pixel-title">CodeQuest<span class="cursor">_</span></h1>
+                <p class="subtitle">¡Adivina el lenguaje de programación & domina el código!</p>
+            </div>
+
+            <div class="main-menu">
+                <button class="pixel-btn primary" onclick="app.showModeSelect()">▶ JUGAR</button>
+                <button class="pixel-btn secondary" onclick="app.openLearningMode()">📚 MODO APRENDIZAJE</button>
+                <button class="pixel-btn secondary" onclick="app.showScreen('screen-stats')">📊 ESTADÍSTICAS</button>
+                <button class="pixel-btn secondary" onclick="app.showScreen('screen-achievements')">🏆 LOGROS</button>
+                <button class="pixel-btn utility" onclick="app.showScreen('screen-settings')">⚙️ CONFIGURACIÓN</button>
+            </div>
+        </section>
+
+        <!-- SELECCIÓN DE MODO DE JUEGO -->
+        <section id="screen-modes" class="screen">
+            <h2 class="pixel-subtitle">Elige un Modo de Juego</h2>
+            <div class="modes-grid">
+                <div class="mode-card" onclick="app.startGame('classic')">
+                    <span class="mode-icon">📜</span>
+                    <h3>Clásico</h3>
+                    <p>Responde sin presión ni límite de tiempo.</p>
+                </div>
+                <div class="mode-card" onclick="app.startGame('time')">
+                    <span class="mode-icon">⏱️</span>
+                    <h3>Contrarreloj</h3>
+                    <p>60 segundos. ¡Cada acierto suma tiempo!</p>
+                </div>
+                <div class="mode-card" onclick="app.startGame('survival')">
+                    <span class="mode-icon">👾</span>
+                    <h3>Supervivencia</h3>
+                    <p>3 Vidas. Un error y perderás un corazón.</p>
+                </div>
+                <div class="mode-card" onclick="app.startGame('expert')">
+                    <span class="mode-icon">🔮</span>
+                    <h3>Modo Experto</h3>
+                    <p>Palabras clave ocultas (???). ¡Para verdaderos dev!</p>
+                </div>
+            </div>
+            <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
+        </section>
+
+        <!-- PANTALLA DE JUEGO -->
+        <section id="screen-game" class="screen">
+            <div class="game-status-bar">
+                <div class="stat-box">
+                    <span id="mode-indicator">CLÁSICO</span>
+                    <span id="difficulty-badge" class="badge easy">Fácil</span>
+                </div>
+                <div class="stat-box" id="timer-box" style="display:none;">
+                    ⏱️ <span id="game-timer">60</span>s
+                </div>
+                <div class="stat-box" id="lives-box" style="display:none;">
+                    ❤️ <span id="game-lives">3</span>
+                </div>
+                <div class="stat-box">
+                    🔥 Racha: <span id="game-streak">0</span>
+                </div>
+            </div>
+
+            <!-- Editor de Código Falso inspirado en VS Code -->
+            <div class="vscode-window">
+                <div class="vscode-tab">
+                    <span class="file-icon">📄</span> snippet.<span id="file-ext">code</span>
+                </div>
+                <pre class="vscode-code"><code id="code-snippet" class="language-clike"></code></pre>
+            </div>
+
+            <!-- Opciones de Respuesta -->
+            <div class="keyboard-hint">💡 Usa las teclas 1, 2, 3 o 4 para responder rápido</div>
+            <div class="options-grid" id="options-container">
+                <!-- Se generan dinámicamente -->
+            </div>
+
+            <!-- Modal / Banner de Explicación -->
+            <div id="explanation-box" class="explanation-card hidden">
+                <div id="explanation-header" class="exp-header"></div>
+                <p id="explanation-text" class="exp-body"></p>
+                <button class="pixel-btn primary" id="next-btn" onclick="app.nextQuestion()">Siguiente ➔</button>
+            </div>
+        </section>
+
+        <!-- MODO APRENDIZAJE -->
+        <section id="screen-learning" class="screen">
+            <h2 class="pixel-subtitle">📚 Enciclopedia de Lenguajes</h2>
+            <div class="learning-layout">
+                <div class="lang-sidebar" id="lang-list">
+                    <!-- Lista de lenguajes dinámicas -->
+                </div>
+                <div class="lang-detail" id="lang-detail-content">
+                    <p class="select-prompt">👈 Selecciona un lenguaje para inspeccionar sus secretos.</p>
+                </div>
+            </div>
+            <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
+        </section>
+
+        <!-- ESTADÍSTICAS -->
+        <section id="screen-stats" class="screen">
+            <h2 class="pixel-subtitle">📊 Tus Estadísticas</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><span>Partidas Jugadas</span><strong id="st-played">0</strong></div>
+                <div class="stat-card"><span>Preguntas Respondidas</span><strong id="st-answered">0</strong></div>
+                <div class="stat-card"><span>Aciertos / Errores</span><strong><span id="st-correct" class="text-green">0</span> / <span id="st-wrong" class="text-red">0</span></strong></div>
+                <div class="stat-card"><span>Precisión</span><strong id="st-accuracy">0%</strong></div>
+                <div class="stat-card"><span>Mejor Racha</span><strong id="st-streak">0</strong></div>
+                <div class="stat-card"><span>Nivel Actual</span><strong id="st-level">1</strong></div>
+                <div class="stat-card"><span>XP Total</span><strong id="st-xp">0 XP</strong></div>
+                <div class="stat-card"><span>Lenguaje Dominante</span><strong id="st-fav-lang">-</strong></div>
+            </div>
+            <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
+        </section>
+
+        <!-- LOGROS -->
+        <section id="screen-achievements" class="screen">
+            <h2 class="pixel-subtitle">🏆 Logros Pixelados</h2>
+            <div class="achievements-list" id="achievements-container">
+                <!-- Generados por JS -->
+            </div>
+            <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
+        </section>
+
+        <!-- CONFIGURACIÓN -->
+        <section id="screen-settings" class="screen">
+            <h2 class="pixel-subtitle">⚙️ Configuración</h2>
+            <div class="settings-form">
+                <label class="setting-item">
+                    <span>Efectos de Sonido Retro</span>
+                    <input type="checkbox" id="setting-sound" checked onchange="app.toggleSound(this.checked)">
+                </label>
+                <label class="setting-item">
+                    <span>Animaciones / Confeti</span>
+                    <input type="checkbox" id="setting-anims" checked onchange="app.toggleAnims(this.checked)">
+                </label>
+                <div class="danger-zone">
+                    <h3>Zona de Peligro</h3>
+                    <p>Borrará todas tus estadísticas, nivel y logros de este navegador.</p>
+                    <button class="pixel-btn danger" onclick="app.resetProgress()">🔥 Reiniciar Todo el Progreso</button>
+                </div>
+            </div>
+            <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
+        </section>
     </div>
 
-    <!-- PANTALLA PRINCIPAL / MENÚ -->
-    <section id="screen-home" class="screen active">
-      <div class="hero">
-        <div class="floating-icons">👾 💻 ⚡</div>
-        <h1 class="pixel-title">CodeQuest<span class="cursor">_</span></h1>
-        <p class="subtitle">¡Demuestra tus habilidades reconociendo lenguajes de programación!</p>
-      </div>
-      <div class="main-menu">
-        <button class="pixel-btn primary" onclick="app.showModeSelect()">▶️ JUGAR</button>
-        <button class="pixel-btn secondary" onclick="app.openLearningMode()">📚 MODO APRENDIZAJE</button>
-        <button class="pixel-btn utility" onclick="app.showScreen('screen-stats')">📊 ESTADÍSTICAS</button>
-        <button class="pixel-btn utility" onclick="app.showScreen('screen-settings')">⚙️ AJUSTES</button>
-      </div>
-    </section>
+    <!-- Canvas para Confeti Pixelado -->
+    <canvas id="confetti-canvas"></canvas>
 
-    <!-- SELECCIÓN DE MODO DE JUEGO -->
-    <section id="screen-modes" class="screen">
-      <h2 class="pixel-title">Selecciona un Modo</h2>
-      <div class="modes-grid">
-        <div class="mode-card" onclick="app.startGame('classic')">
-          <div class="mode-icon">🎯</div>
-          <h3>Clásico</h3>
-          <p>10 Preguntas para ponerte a prueba</p>
-        </div>
-        <div class="mode-card" onclick="app.startGame('time')">
-          <div class="mode-icon">⏱️</div>
-          <h3>Contrarreloj</h3>
-          <p>Responde rápido antes de que venza el tiempo</p>
-        </div>
-        <div class="mode-card" onclick="app.startGame('survival')">
-          <div class="mode-icon">❤️</div>
-          <h3>Supervivencia</h3>
-          <p>Tienes 3 vidas. ¡No te equivoques!</p>
-        </div>
-        <div class="mode-card" onclick="app.startGame('expert')">
-          <div class="mode-icon">🔥</div>
-          <h3>Modo Experto</h3>
-          <p>Palabras clave ocultas</p>
-        </div>
-      </div>
-      <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver al Menú</button>
-    </section>
-
-    <!-- PANTALLA DE JUEGO -->
-    <section id="screen-game" class="screen">
-      <div class="game-status-bar">
-        <div>
-          <span id="mode-indicator" class="badge medium">CLÁSICO</span>
-          <span id="difficulty-badge" class="badge easy">Fácil</span>
-        </div>
-        
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <div id="timer-box" style="display: none;">⏱️ <span id="game-timer">60</span>s</div>
-          <div id="lives-box" style="display: none;">❤️ <span id="game-lives">3</span></div>
-          
-          <button class="pixel-btn danger" onclick="app.endGame('Partida cancelada')" style="padding: 4px 10px; font-size: 0.85rem; margin: 0;">
-            🚪 SALIR
-          </button>
-        </div>
-      </div>
-
-      <div class="vscode-window">
-        <div class="vscode-tab">📄 snippet.code</div>
-        <pre class="vscode-code"><code id="code-snippet"></code></pre>
-      </div>
-
-      <div id="options-container" class="options-grid"></div>
-
-      <div id="explanation-box" class="explanation-card hidden">
-        <div id="explanation-header" class="exp-header"></div>
-        <p id="explanation-text"></p>
-        <button class="pixel-btn primary" onclick="app.nextQuestion()" style="margin-top: 10px;">Siguiente ➔</button>
-      </div>
-    </section>
-
-    <!-- MODO APRENDIZAJE -->
-    <section id="screen-learning" class="screen">
-      <h2 class="pixel-title">📚 Modo Aprendizaje</h2>
-      <div class="learning-layout">
-        <div id="lang-list" class="lang-sidebar"></div>
-        <div id="lang-detail-content" class="lang-detail"></div>
-      </div>
-      <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver al Menú</button>
-    </section>
-
-    <!-- ESTADÍSTICAS -->
-    <section id="screen-stats" class="screen">
-      <h2 class="pixel-title">📊 Tus Estadísticas</h2>
-      <div class="stats-grid">
-        <div class="stat-card"><strong>Partidas</strong><span id="st-played">0</span></div>
-        <div class="stat-card"><strong>Preguntas</strong><span id="st-answered">0</span></div>
-        <div class="stat-card"><strong>Aciertos</strong><span id="st-correct">0</span></div>
-        <div class="stat-card"><strong>Errores</strong><span id="st-wrong">0</span></div>
-        <div class="stat-card"><strong>Precisión</strong><span id="st-accuracy">0%</span></div>
-        <div class="stat-card"><strong>Mejor Racha</strong><span id="st-streak">0</span></div>
-        <div class="stat-card"><strong>Nivel</strong><span id="st-level">1</span></div>
-        <div class="stat-card"><strong>XP Total</strong><span id="st-xp">0 XP</span></div>
-      </div>
-
-      <h3 style="margin: 20px 0 10px 0;">🏆 Logros</h3>
-      <div id="achievements-container" class="achievements-list"></div>
-
-      <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver</button>
-    </section>
-
-    <!-- AJUSTES -->
-    <section id="screen-settings" class="screen">
-      <h2 class="pixel-title">⚙️ Ajustes</h2>
-      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0; text-align: left;">
-        <button class="pixel-btn danger" onclick="if(confirm('¿Seguro que quieres borrar todo tu progreso?')) { localStorage.clear(); location.reload(); }">
-          🗑️ Reiniciar Todo el Progreso
-        </button>
-      </div>
-      <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver al Menú</button>
-    </section>
-
-  </div> <!-- FIN DE RETRO-WINDOW -->
-
-  <canvas id="confetti-canvas"></canvas>
-
-  <script src="app.js?v=2000"></script>
+    <!-- Prism JS para el resaltado de código -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-swift.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-ruby.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-dart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-r.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
+
