@@ -187,8 +187,7 @@ class CodeQuestApp {
         }, 1000);
     }
 
-    // --- SIGUIENTE PREGUNTA (SIN REPETICIONES Y CON LÍMITE) ---
-    nextQuestion() {
+   nextQuestion() {
         // Verificar si la partida llegó a su límite de preguntas
         if (this.selectedMode !== 'time' && this.selectedMode !== 'survival') {
             if (this.gameQuestionCount >= this.MAX_QUESTIONS_PER_GAME) {
@@ -197,6 +196,62 @@ class CodeQuestApp {
             }
         }
 
+        const expBox = document.getElementById('explanation-box');
+        if (expBox) expBox.classList.add('hidden');
+
+        // Filtrar preguntas que NO se hayan hecho en esta partida
+        let availableQuestions = this.questions.filter(q => !this.askedQuestionIds.has(q.id));
+
+        // Si se agotaron todas las preguntas disponibles del banco:
+        if (availableQuestions.length === 0) {
+            this.askedQuestionIds.clear();
+            availableQuestions = [...this.questions];
+        }
+
+        // Elegir pregunta aleatoria
+        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+        this.currentQuestion = { ...availableQuestions[randomIndex] };
+        this.askedQuestionIds.add(this.currentQuestion.id);
+        this.gameQuestionCount++;
+
+        // Modo Experto (Ocultar palabras clave)
+        if (this.selectedMode === 'expert') {
+            const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
+            let maskCode = this.currentQuestion.code;
+            keywords.forEach(kw => {
+                const reg = new RegExp(`\\b${kw}\\b`, 'gi');
+                maskCode = maskCode.replace(reg, "???");
+            });
+            this.currentQuestion.code = maskCode;
+        }
+
+        // Mostrar en la interfaz asegurando que solo se escriba en el elemento correcto
+        const codeElement = document.getElementById('code-snippet');
+        if (codeElement) {
+            codeElement.textContent = this.currentQuestion.code;
+            codeElement.className = 'language-clike';
+            if (window.Prism) { 
+                try { Prism.highlightElement(codeElement); } catch(e){} 
+            }
+        }
+
+        const diffBadge = document.getElementById('difficulty-badge');
+        if (diffBadge) {
+            diffBadge.innerText = `${this.currentQuestion.difficulty} (${this.gameQuestionCount}/${this.MAX_QUESTIONS_PER_GAME})`;
+        }
+
+        const optionsContainer = document.getElementById('options-container');
+        if (optionsContainer) {
+            optionsContainer.innerHTML = '';
+            this.currentQuestion.options.forEach((option, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>[${idx + 1}]</span> ${option}`;
+                btn.onclick = () => this.handleAnswer(option, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+    }
         const expBox = document.getElementById('explanation-box');
         if (expBox) expBox.classList.add('hidden');
 
