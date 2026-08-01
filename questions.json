@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "language": "C++",
+    "difficulty": "Fácil",
+    "code": "#include <iostream>\n\nint main() {\n    std::cout << \"¡Hola, Mundo!\";\n    return 0;\n}",
+    "options": ["C++", "Java", "Rust", "C#"],
+    "explanation": "Utiliza la librería cabecera `<iostream>` y la instrucción `std::cout` para salida estándar, características fundamentales de C++."
+  },
+  {
+    "id": 2,
+    "language": "Python",
+    "difficulty": "Fácil",
+    "code": "def saludar(nombre):\n    print(f\"Hola, {nombre}\")\n\nsaludar(\"Dev\")",
+    "options": ["Ruby", "Python", "JavaScript", "Lua"],
+    "explanation": "No requiere puntos y comas, define funciones con la palabra clave `def` y utiliza cadenas f-strings (`f\"...\"`)."
+  },
+  {
+    "id": 3,
+    "language": "Java",
+    "difficulty": "Medio",
+    "code": "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Java Rules!\");\n    }\n}",
+    "options": ["C#", "Java", "C++", "TypeScript"],
+    "explanation": "Todo el código reside dentro de clases, y el punto de entrada es explícitamente `public static void main(String[] args)`."
+  },
+  {
+    "id": 4,
+    "language": "Rust",
+    "difficulty": "Medio",
+    "code": "fn main() {\n    let mut x = 5;\n    println!(\"El valor es: {}\", x);\n}",
+    "options": ["C", "Rust", "Go", "Swift"],
+    "explanation": "Usa `fn` para funciones, la macro `println!` (con el signo `!`) y mutabilidad explícita con `let mut`."
+  },
+  {
+    "id": 5,
+    "language": "Go",
+    "difficulty": "Medio",
+    "code": "package main\nimport \"fmt\"\n\nfunc main() {\n    fmt.Println(\"Hello from Go!\")\n}",
+    "options": ["Go", "Kotlin", "Swift", "C#"],
+    "explanation": "Inicia definiendo el `package main`, importa paquetes mediante `import \"fmt\"` y usa la sintaxis `func`."
+  },
+  {
+    "id": 6,
+    "language": "SQL",
+    "difficulty": "Fácil",
+    "code": "SELECT users.id, users.name \nFROM users \nWHERE users.active = 1 \nORDER BY created_at DESC;",
+    "options": ["SQL", "R", "PHP", "Python"],
+    "explanation": "Sintaxis declarativa de consulta a base de datos utilizando `SELECT`, `FROM`, `WHERE` y `ORDER BY`."
+  },
+  {
+    "id": 7,
+    "language": "JavaScript",
+    "difficulty": "Medio",
+    "code": "const sumar = (a, b) => a + b;\nconsole.log(sumar(5, 10));",
+    "options": ["TypeScript", "JavaScript", "Dart", "PHP"],
+    "explanation": "Usa funciones flecha (`=>`), declaración de variables con `const` y salida mediante `console.log()` sin anotaciones de tipo."
+  },
+  {
+    "id": 8,
+    "language": "Swift",
+    "difficulty": "Difícil",
+    "code": "let mensaje: String? = \"Hola\"\nif let texto = mensaje {\n    print(texto)\n}",
+    "options": ["Kotlin", "Swift", "Rust", "Dart"],
+    "explanation": "Implementa el desenvolvimiento seguro de opcionales (Optional Binding) usando la sintaxis `if let` propia de Swift."
+  },
+  {
+    "id": 9,
+    "language": "Ruby",
+    "difficulty": "Medio",
+    "code": "[1, 2, 3].each do |num|\n  puts num * 2\nend",
+    "options": ["Python", "Ruby", "Lua", "PHP"],
+    "explanation": "Bloques iteradores delimitados por `do |param| ... end` e impresión estándar con `puts`."
+  },
+  {
+    "id": 10,
+    "language": "Lua",
+    "difficulty": "Difícil",
+    "code": "local tabla = {clave = \"valor\"}\nfor k, v in pairs(tabla) do\n    print(k, v)\nend",
+    "options": ["Python", "Ruby", "Lua", "R"],
+    "explanation": "Variables locales declaradas con `local`, tablas hash únicas `{}` e iteradores con la función `pairs()`."
+  }
+]
