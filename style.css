@@ -1,12 +1,16 @@
+/* ==========================================================================
+   CODEQUEST - ESTILO RETRO PIXEL PASTEL (100% FUNCIONAL Y LINDO)
+   ========================================================================== */
+
 :root {
-  --bg-main: #fdf6e4;
+  --bg-main: #fcf4dd;
   --panel-bg: #ffffff;
-  --primary: #94bbe9;
-  --primary-hover: #7ba8e0;
-  --secondary: #eea2a4;
-  --accent: #fff5a5;
-  --text-color: #2b2b2b;
-  --border-pixel: #333333;
+  --primary: #a8d8ea;
+  --primary-hover: #aaabb8;
+  --secondary: #f67280;
+  --accent: #ffb6b9;
+  --text-color: #2d3142;
+  --border-pixel: #2b2d42;
   --correct-bg: #d4edda;
   --correct-border: #28a745;
   --wrong-bg: #f8d7da;
@@ -29,48 +33,48 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 20px;
+  padding: 15px;
 }
 
-/* --- REGLAS DE VISIBILIDAD FUNDAMENTALES --- */
+/* --- MANEJO DE PANTALLAS (PANTALLA ACTIVA Y OCULTA) --- */
 .screen {
-  display: none !important;
+  display: none; /* Oculto por defecto */
   width: 100%;
-  max-width: 650px;
+  max-width: 550px;
   background: var(--panel-bg);
-  border: 3px solid var(--border-pixel);
+  border: 4px solid var(--border-pixel);
   box-shadow: 6px 6px 0px var(--border-pixel);
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   text-align: center;
 }
 
 .screen.active {
-  display: block !important;
+  display: block !important; /* Se muestra la pantalla activa */
 }
 
 .hidden {
   display: none !important;
 }
 
-/* --- BARRA DE NAVEGACIÓN --- */
+/* --- BARRA SUPERIOR DE NAVEGACIÓN --- */
 .top-nav {
   width: 100%;
-  max-width: 650px;
+  max-width: 550px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--panel-bg);
-  border: 3px solid var(--border-pixel);
+  border: 4px solid var(--border-pixel);
   box-shadow: 4px 4px 0px var(--border-pixel);
-  border-radius: 8px;
-  padding: 10px 16px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
 }
 
 .logo {
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   cursor: pointer;
 }
 
@@ -81,7 +85,7 @@ body {
 }
 
 .mini-xp-bar {
-  width: 80px;
+  width: 70px;
   height: 12px;
   background: #eee;
   border: 2px solid var(--border-pixel);
@@ -93,103 +97,88 @@ body {
   height: 100%;
   width: 0%;
   background: var(--secondary);
-  transition: width 0.3s ease;
 }
 
-/* --- BOTONES PIXEL --- */
+/* --- BOTONES ESTILO PIXEL RETRO --- */
 .pixel-btn {
   background-color: var(--primary);
   color: var(--text-color);
   border: 3px solid var(--border-pixel);
   box-shadow: 4px 4px 0px var(--border-pixel);
   border-radius: 8px;
-  padding: 12px 20px;
+  padding: 12px 16px;
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.1s ease;
   width: 100%;
   margin-bottom: 10px;
-}
-
-.pixel-btn:hover {
-  background-color: var(--primary-hover);
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px var(--border-pixel);
+  display: block;
+  text-align: center;
+  user-select: none;
+  touch-action: manipulation; /* Hace que responda super rápido en móviles */
 }
 
 .pixel-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--border-pixel);
-}
-
-.pixel-btn.secondary {
-  background-color: #e2e8f0;
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0px var(--border-pixel);
 }
 
 .pixel-btn.primary {
   background-color: var(--accent);
 }
 
-/* --- MENÚS Y GRID --- */
-.menu-buttons, .modes-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
+.pixel-btn.secondary {
+  background-color: #e2e8f0;
 }
 
-/* --- JUEGO --- */
-.badge {
-  background: var(--accent);
-  border: 2px solid var(--border-pixel);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  display: inline-block;
-  margin-right: 5px;
-}
-
+/* --- CONTENEDOR DE CÓDIGO --- */
 .code-container {
   background: #1e1e1e;
-  color: #d4d4d4;
+  color: #f8f8f2;
   border: 3px solid var(--border-pixel);
   border-radius: 8px;
   padding: 15px;
   text-align: left;
   margin: 15px 0;
   overflow-x: auto;
-  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4);
 }
 
 .code-container pre code {
   font-family: 'Courier New', Courier, monospace;
-  font-size: 0.95rem;
-  white-space: pre-wrap;
+  font-size: 0.9rem;
 }
 
+/* --- OPCIONES DE RESPUESTA --- */
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-top: 15px;
 }
 
+@media (min-width: 480px) {
+  .options-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .option-btn {
-  background: #fff;
-  border: 2px solid var(--border-pixel);
+  background: #ffffff;
+  border: 3px solid var(--border-pixel);
   box-shadow: 3px 3px 0px var(--border-pixel);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
   text-align: left;
+  touch-action: manipulation;
 }
 
-.option-btn:hover {
-  background: #f0f4f8;
+.option-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--border-pixel);
 }
 
 .option-btn.correct {
@@ -202,48 +191,25 @@ body {
   border-color: var(--wrong-border) !important;
 }
 
+/* --- BADGES Y CUADROS --- */
+.badge {
+  background: var(--accent);
+  border: 2px solid var(--border-pixel);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
 .explanation-card {
   background: #f8fafc;
   border: 2px dashed var(--border-pixel);
   border-radius: 8px;
-  padding: 15px;
+  padding: 12px;
   margin-top: 15px;
   text-align: left;
 }
 
-/* --- APRENDIZAJE Y LOGROS --- */
-.achievement-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #f1f5f9;
-  border: 2px solid var(--border-pixel);
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  opacity: 0.6;
-}
-
-.achievement-card.unlocked {
-  opacity: 1;
-  background: var(--correct-bg);
-}
-
-.lang-item {
-  padding: 8px 12px;
-  border: 2px solid var(--border-pixel);
-  border-radius: 4px;
-  margin-bottom: 6px;
-  cursor: pointer;
-  background: #fff;
-}
-
-.lang-item.active {
-  background: var(--accent);
-  font-weight: bold;
-}
-
-/* CANVAS DE CONFETI */
 #confetti-canvas {
   position: fixed;
   top: 0;
