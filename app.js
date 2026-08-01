@@ -1,6 +1,15 @@
+/* ==========================================================================
+   CODEQUEST - ENGINE PRINCIPAL MEJORADO
+   ========================================================================== */
+
 class CodeQuestApp {
     constructor() {
-        // Preguntas por defecto de respaldo (Fallback) por si falla el fetch en GitHub Pages
+        // Límite de preguntas por partida para evitar partidas infinitas
+        this.MAX_QUESTIONS_PER_GAME = 10;
+        this.gameQuestionCount = 0;
+        this.askedQuestionIds = new Set(); // Para controlar que no se repitan
+
+        // Preguntas por defecto de respaldo
         this.questions = [
             {
                 id: 1,
@@ -8,7 +17,7 @@ class CodeQuestApp {
                 difficulty: "Fácil",
                 code: "#include <iostream>\n\nint main() {\n    std::cout << \"¡Hola, Mundo!\";\n    return 0;\n}",
                 options: ["C++", "Java", "Rust", "C#"],
-                explanation: "Utiliza la librería cabecera `<iostream>` y `std::cout`."
+                explanation: "Utiliza la librería cabecera `<iostream>` y `std::cout` para imprimir en consola."
             },
             {
                 id: 2,
@@ -16,7 +25,7 @@ class CodeQuestApp {
                 difficulty: "Fácil",
                 code: "def saludar(nombre):\n    print(f\"Hola, {nombre}\")\n\nsaludar(\"Dev\")",
                 options: ["Ruby", "Python", "JavaScript", "Lua"],
-                explanation: "Define funciones con `def` y no usa puntos y comas."
+                explanation: "Define funciones con `def`, usa sangría (indentación) en lugar de llaves y no requiere puntos y comas."
             },
             {
                 id: 3,
@@ -24,7 +33,23 @@ class CodeQuestApp {
                 difficulty: "Medio",
                 code: "const sumar = (a, b) => a + b;\nconsole.log(sumar(5, 10));",
                 options: ["TypeScript", "JavaScript", "Dart", "PHP"],
-                explanation: "Usa funciones flecha (`=>`) y `console.log()`."
+                explanation: "Utiliza funciones flecha (`=>`) y `console.log()` para mostrar salida en el navegador o consola."
+            },
+            {
+                id: 4,
+                language: "HTML",
+                difficulty: "Fácil",
+                code: "<div class=\"contenedor\">\n  <h1>Título</h1>\n  <p>Párrafo de texto</p>\n</div>",
+                options: ["HTML", "XML", "JSX", "PHP"],
+                explanation: "Es un lenguaje de marcado basado en etiquetas como `<div>`, `<h1>` y `<p>` para estructurar páginas web."
+            },
+            {
+                id: 5,
+                language: "CSS",
+                difficulty: "Fácil",
+                code: ".boton {\n  background-color: #ff69b4;\n  color: white;\n  border-radius: 8px;\n}",
+                options: ["CSS", "SCSS", "JSON", "JavaScript"],
+                explanation: "Define reglas de estilo visual con selectores (`.clase`), propiedades y valores terminados en punto y coma."
             }
         ];
 
@@ -35,19 +60,47 @@ class CodeQuestApp {
         this.timeLeft = 60;
         this.lives = 3;
 
-        // Cargar estado guardado
         this.state = this.loadState();
 
-        // Datos para el modo aprendizaje
+        // Modo Aprendizaje explicativo para principiantes
         this.learningData = {
-            "Python": { creator: "Guido van Rossum", year: 1991, use: "IA, Web, Ciencia de datos", trivia: "Su nombre viene del grupo cómico Monty Python." },
-            "C++": { creator: "Bjarne Stroustrup", year: 1985, use: "Videojuegos, Sistemas operativos", trivia: "Originalmente se llamaba 'C con Clases'." },
-            "Java": { creator: "James Gosling", year: 1995, use: "Empresarial, Android", trivia: "Inicialmente se llamó Oak." },
-            "JavaScript": { creator: "Brendan Eich", year: 1995, use: "Desarrollo Web", trivia: "Fue creado en solo 10 días." },
-            "Rust": { creator: "Graydon Hoare", year: 2010, use: "Sistemas de alto rendimiento", trivia: "Nombrado así por un hongo muy resistente." }
+            "Python": {
+                creator: "Guido van Rossum (1991)",
+                use: "Inteligencia Artificial, Ciencia de Datos, Automatización y Desarrollo Web.",
+                concept: "Es conocido por ser el lenguaje más legible y fácil de aprender. Se parece mucho al inglés escrito.",
+                syntaxKey: "Usa sangrías (espacios) para organizar el código en lugar de llaves `{}`.",
+                example: "edad = 15\nif edad >= 18:\n    print('Mayor de edad')\nelse:\n    print('Menor de edad')"
+            },
+            "C++": {
+                creator: "Bjarne Stroustrup (1985)",
+                use: "Motores de videojuegos (Unreal Engine), Sistemas Operativos, Robótica y Software de alto rendimiento.",
+                concept: "Es un lenguaje potente que da control total sobre la memoria del equipo y la velocidad de ejecución.",
+                syntaxKey: "Cada instrucción termina en punto y coma `;` y el código principal vive dentro de `int main() { ... }`.",
+                example: "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << '¡Hola C++!';\n    return 0;\n}"
+            },
+            "JavaScript": {
+                creator: "Brendan Eich (1995)",
+                use: "Desarrollo Web (da interactividad a las páginas), aplicaciones móviles y servidores.",
+                concept: "Es el lenguaje nativo de la web. Todo lo que hace clic, se mueve o cambia en un sitio web usa JS.",
+                syntaxKey: "Usa variables como `const` o `let` y funciones que reaccionan a eventos del usuario.",
+                example: "let boton = document.querySelector('button');\nboton.onclick = () => alert('¡Hiciste clic!');"
+            },
+            "HTML": {
+                creator: "Tim Berners-Lee (1993)",
+                use: "Estructura y esqueleto de todas las páginas web de Internet.",
+                concept: "No es un lenguaje de programación, sino de 'marcado'. Define dónde van los textos, imágenes y botones.",
+                syntaxKey: "Usa etiquetas con apertura e inicio: `<etiqueta>Contenido</etiqueta>`.",
+                example: "<h1>Mi Título</h1>\n<p>Este es un párrafo de prueba.</p>\n<button>Hacer Clic</button>"
+            },
+            "CSS": {
+                creator: "Håkon Wium Lie (1996)",
+                use: "Diseño visual, colores, tipografías y maquetación de sitios web.",
+                concept: "Se encarga del aspecto estético del HTML. Transforma esqueletos sencillos en interfaces bonitas.",
+                syntaxKey: "Aplica estilos usando reglas de `propiedad: valor;` dentro de bloques delimitados por `{}`.",
+                example: "body {\n    background-color: #f0f0f0;\n    font-family: Arial, sans-serif;\n}"
+            }
         };
 
-        // Iniciar al cargar el DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
         } else {
@@ -61,38 +114,25 @@ class CodeQuestApp {
         this.setupKeyboardListeners();
         this.updateUI();
         this.renderAchievements();
-        console.log("✅ App lista para jugar.");
     }
 
-    // --- CARGAR PREGUNTAS ---
     async loadQuestions() {
         try {
-            // Intenta cargar el archivo JSON
             const res = await fetch('./questions.json');
             if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
             const data = await res.json();
             if (data && data.length > 0) {
                 this.questions = data;
-                console.log(`📁 ${data.length} preguntas cargadas desde questions.json`);
             }
         } catch (e) {
-            console.warn("⚠️ No se pudo cargar questions.json, usando preguntas de respaldo local.", e);
+            console.warn("⚠️ Usando preguntas locales.", e);
         }
     }
 
-    // --- MANEJO DE ESTADO LOCALSTORAGE ---
     loadState() {
         const defaultState = {
-            xp: 0,
-            level: 1,
-            played: 0,
-            answered: 0,
-            correct: 0,
-            wrong: 0,
-            maxStreak: 0,
-            settings: { sound: true, anims: true },
-            achievements: [],
-            langStats: {}
+            xp: 0, level: 1, played: 0, answered: 0, correct: 0, wrong: 0, maxStreak: 0,
+            settings: { sound: true, anims: true }, achievements: [], langStats: {}
         };
         try {
             const saved = localStorage.getItem('codequest_save');
@@ -103,49 +143,28 @@ class CodeQuestApp {
     }
 
     saveState() {
-        try {
-            localStorage.setItem('codequest_save', JSON.stringify(this.state));
-        } catch(e) {}
+        try { localStorage.setItem('codequest_save', JSON.stringify(this.state)); } catch(e) {}
         this.updateUI();
     }
 
-    resetProgress() {
-        if (confirm("¿Seguro que deseas reiniciar todo tu progreso?")) {
-            localStorage.removeItem('codequest_save');
-            this.state = this.loadState();
-            this.saveState();
-            this.showScreen('screen-home');
-        }
-    }
-
-    // --- NAVEGACIÓN ---
     showScreen(screenId) {
-        console.log("Cambiando a pantalla:", screenId);
-        const screens = document.querySelectorAll('.screen');
-        screens.forEach(s => s.classList.remove('active'));
-
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         const targetScreen = document.getElementById(screenId);
-        if (targetScreen) {
-            targetScreen.classList.add('active');
-        } else {
-            console.error(`La pantalla #${screenId} no existe en el HTML.`);
-        }
-
+        if (targetScreen) targetScreen.classList.add('active');
         if (screenId === 'screen-stats') this.renderStats();
     }
 
-    showModeSelect() {
-        this.showScreen('screen-modes');
-    }
+    showModeSelect() { this.showScreen('screen-modes'); }
 
-    // --- JUEGO ---
+    // --- INICIO DE PARTIDA ---
     startGame(mode) {
-        console.log("Iniciando juego en modo:", mode);
         this.selectedMode = mode;
         this.streak = 0;
         this.timeLeft = 60;
         this.lives = 3;
-        
+        this.gameQuestionCount = 0;
+        this.askedQuestionIds.clear(); // Limpiar preguntas hechas en esta partida
+
         const modeInd = document.getElementById('mode-indicator');
         if (modeInd) modeInd.innerText = mode.toUpperCase();
         
@@ -167,26 +186,40 @@ class CodeQuestApp {
             
             if (this.timeLeft <= 0) {
                 clearInterval(this.timer);
-                alert("⏱️ ¡Tiempo Agotado!");
-                this.endGame();
+                this.endGame("⏱️ ¡Tiempo Agotado!");
             }
         }, 1000);
     }
 
+    // --- SIGUIENTE PREGUNTA (SIN REPETICIONES Y CON LÍMITE) ---
     nextQuestion() {
-        const expBox = document.getElementById('explanation-box');
-        if (expBox) expBox.classList.add('hidden');
-        
-        if (!this.questions || this.questions.length === 0) {
-            alert("No hay preguntas disponibles.");
-            return;
+        // Verificar si la partida llegó a su límite de preguntas
+        if (this.selectedMode !== 'time' && this.selectedMode !== 'survival') {
+            if (this.gameQuestionCount >= this.MAX_QUESTIONS_PER_GAME) {
+                this.endGame("🎉 ¡Partida completada! Has respondido las 10 preguntas.");
+                return;
+            }
         }
 
-        // Seleccionar pregunta aleatoria
-        const randomIndex = Math.floor(Math.random() * this.questions.length);
-        this.currentQuestion = { ...this.questions[randomIndex] };
+        const expBox = document.getElementById('explanation-box');
+        if (expBox) expBox.classList.add('hidden');
 
-        // Modo Experto (Ocultar palabras)
+        // Filtrar preguntas que NO se hayan hecho en esta partida
+        let availableQuestions = this.questions.filter(q => !this.askedQuestionIds.has(q.id));
+
+        // Si se agotaron todas las preguntas disponibles del banco:
+        if (availableQuestions.length === 0) {
+            this.askedQuestionIds.clear(); // Reiniciar pool de vistas
+            availableQuestions = [...this.questions];
+        }
+
+        // Elegir pregunta aleatoria dentro del conjunto no repetido
+        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+        this.currentQuestion = { ...availableQuestions[randomIndex] };
+        this.askedQuestionIds.add(this.currentQuestion.id);
+        this.gameQuestionCount++;
+
+        // Modo Experto (Ocultar palabras clave)
         if (this.selectedMode === 'expert') {
             const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
             let maskCode = this.currentQuestion.code;
@@ -197,34 +230,22 @@ class CodeQuestApp {
             this.currentQuestion.code = maskCode;
         }
 
-        // Mostrar código
+        // Mostrar en la interfaz
         const codeElement = document.getElementById('code-snippet');
         if (codeElement) {
             codeElement.textContent = this.currentQuestion.code;
             codeElement.className = `language-clike`;
-            
-            // Proteger si Prism.js no cargó
-            if (window.Prism) {
-                try { Prism.highlightElement(codeElement); } catch(e){}
-            }
+            if (window.Prism) { try { Prism.highlightElement(codeElement); } catch(e){} }
         }
 
-        // Badge Dificultad
         const diffBadge = document.getElementById('difficulty-badge');
         if (diffBadge) {
-            diffBadge.innerText = this.currentQuestion.difficulty;
-            const cleanDiff = this.currentQuestion.difficulty.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            diffBadge.className = `badge ${cleanDiff}`;
+            diffBadge.innerText = `${this.currentQuestion.difficulty} (${this.gameQuestionCount}/${this.MAX_QUESTIONS_PER_GAME})`;
         }
 
-        const streakEl = document.getElementById('game-streak');
-        if (streakEl) streakEl.innerText = this.streak;
-
-        // Opciones
         const optionsContainer = document.getElementById('options-container');
         if (optionsContainer) {
             optionsContainer.innerHTML = '';
-
             this.currentQuestion.options.forEach((option, idx) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
@@ -252,7 +273,7 @@ class CodeQuestApp {
             if (this.streak > this.state.maxStreak) this.state.maxStreak = this.streak;
             this.state.correct++;
 
-            const xpGained = this.currentQuestion.difficulty === 'Fácil' ? 10 : (this.currentQuestion.difficulty === 'Medio' ? 20 : 40);
+            const xpGained = this.currentQuestion.difficulty === 'Fácil' ? 10 : 20;
             this.addXP(xpGained);
 
             if (this.selectedMode === 'time') this.timeLeft += 3;
@@ -273,7 +294,7 @@ class CodeQuestApp {
                 const livesEl = document.getElementById('game-lives');
                 if (livesEl) livesEl.innerText = this.lives;
                 if (this.lives <= 0) {
-                    setTimeout(() => { alert("👾 ¡Perdiste todas tus vidas!"); this.endGame(); }, 400);
+                    setTimeout(() => { this.endGame("👾 ¡Perdiste todas tus vidas!"); }, 400);
                     return;
                 }
             }
@@ -294,10 +315,11 @@ class CodeQuestApp {
         this.saveState();
     }
 
-    endGame() {
+    endGame(message = "Partida Finalizada") {
         clearInterval(this.timer);
         this.state.played++;
         this.saveState();
+        alert(`${message}\n\nAciertos en esta sesión: ${this.streak}\nXP Total: ${this.state.xp}`);
         this.showScreen('screen-home');
     }
 
@@ -313,21 +335,15 @@ class CodeQuestApp {
     updateUI() {
         const lvlEl = document.getElementById('nav-level');
         if (lvlEl) lvlEl.innerText = `NV. ${this.state.level}`;
-        
         const xpFill = document.getElementById('mini-xp-fill');
-        if (xpFill) {
-            const progress = (this.state.xp % 100);
-            xpFill.style.width = `${progress}%`;
-        }
+        if (xpFill) xpFill.style.width = `${(this.state.xp % 100)}%`;
     }
 
     checkAchievements() {
         const list = [
             { id: 'first_win', title: 'Primer Acierto', condition: s => s.correct >= 1 },
-            { id: 'streak_10', title: 'Racha Pixelada (10)', condition: s => s.maxStreak >= 10 },
-            { id: 'master_50', title: 'Coder Creador (50 Aciertos)', condition: s => s.correct >= 50 }
+            { id: 'streak_10', title: 'Racha Pixelada (10)', condition: s => s.maxStreak >= 10 }
         ];
-
         list.forEach(ach => {
             if (!this.state.achievements.includes(ach.id) && ach.condition(this.state)) {
                 this.state.achievements.push(ach.id);
@@ -339,14 +355,11 @@ class CodeQuestApp {
     renderAchievements() {
         const container = document.getElementById('achievements-container');
         if (!container) return;
-        
         container.innerHTML = '';
         const allAchievements = [
             { id: 'first_win', title: 'Primer Acierto', desc: 'Responde acertadamente 1 pregunta.', icon: '⭐' },
-            { id: 'streak_10', title: 'Racha Pixelada', desc: 'Consigue una racha de 10 aciertos.', icon: '🔥' },
-            { id: 'master_50', title: 'Coder Creador', desc: 'Responde 50 preguntas correctamente.', icon: '🏆' }
+            { id: 'streak_10', title: 'Racha Pixelada', desc: 'Consigue una racha de 10 aciertos.', icon: '🔥' }
         ];
-
         allAchievements.forEach(ach => {
             const unlocked = this.state.achievements.includes(ach.id);
             const card = document.createElement('div');
@@ -364,39 +377,34 @@ class CodeQuestApp {
 
     renderStats() {
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-        
         setVal('st-played', this.state.played);
         setVal('st-answered', this.state.answered);
         setVal('st-correct', this.state.correct);
         setVal('st-wrong', this.state.wrong);
-        
         const acc = this.state.answered > 0 ? Math.round((this.state.correct / this.state.answered) * 100) : 0;
         setVal('st-accuracy', `${acc}%`);
         setVal('st-streak', this.state.maxStreak);
         setVal('st-level', this.state.level);
         setVal('st-xp', `${this.state.xp} XP`);
-
-        let topLang = '-';
-        let max = 0;
-        for (const [lang, count] of Object.entries(this.state.langStats)) {
-            if (count > max) { max = count; topLang = lang; }
-        }
-        setVal('st-fav-lang', topLang);
     }
 
+    // --- MODO APRENDIZAJE DESCRIPTIVO ---
     openLearningMode() {
         this.showScreen('screen-learning');
         const sidebar = document.getElementById('lang-list');
         if (!sidebar) return;
-        
         sidebar.innerHTML = '';
 
-        Object.keys(this.learningData).forEach(lang => {
+        const languages = Object.keys(this.learningData);
+        languages.forEach((lang, index) => {
             const item = document.createElement('div');
             item.className = 'lang-item';
             item.innerText = lang;
             item.onclick = () => this.showLearningDetail(lang, item);
             sidebar.appendChild(item);
+            
+            // Cargar el primer lenguaje por defecto
+            if (index === 0) this.showLearningDetail(lang, item);
         });
     }
 
@@ -408,11 +416,16 @@ class CodeQuestApp {
         const detailContainer = document.getElementById('lang-detail-content');
         if (detailContainer && info) {
             detailContainer.innerHTML = `
-                <h3>💻 ${lang}</h3>
-                <p><strong>Creador:</strong> ${info.creator} (${info.year})</p>
-                <p><strong>Uso principal:</strong> ${info.use}</p>
-                <hr style="margin: 10px 0;">
-                <p><strong>💡 Curiosidad:</strong> ${info.trivia}</p>
+                <h2 style="margin-top:0;">💻 ${lang}</h2>
+                <p><strong>👨‍💻 Creador & Origen:</strong> ${info.creator}</p>
+                <p><strong>🎯 ¿Para qué se usa?:</strong> ${info.use}</p>
+                <div style="background: rgba(0,0,0,0.05); padding: 10px; border-radius: 6px; margin: 10px 0;">
+                    <p><strong>💡 ¿Qué es? (Para Principiantes):</strong></p>
+                    <p>${info.concept}</p>
+                </div>
+                <p><strong>🔑 Regla Clave de Sintaxis:</strong> ${info.syntaxKey}</p>
+                <p><strong>📝 Ejemplo Básico:</strong></p>
+                <pre style="background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 6px; overflow-x: auto;"><code>${info.example}</code></pre>
             `;
         }
     }
@@ -436,17 +449,16 @@ class CodeQuestApp {
     triggerConfetti() {
         const canvas = document.getElementById('confetti-canvas');
         if (!canvas) return;
-        
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const particles = Array.from({ length: 30 }, () => ({
+        const particles = Array.from({ length: 25 }, () => ({
             x: canvas.width / 2,
             y: canvas.height / 2,
-            vx: (Math.random() - 0.5) * 10,
-            vy: (Math.random() - 0.5) * 10,
-            size: Math.random() * 6 + 4,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            size: Math.random() * 5 + 3,
             color: ['#FFF3A6', '#BEEBFF', '#A8E6CF', '#FFAAA5'][Math.floor(Math.random() * 4)]
         }));
 
@@ -459,14 +471,11 @@ class CodeQuestApp {
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x, p.y, p.size, p.size);
             });
-            if (frame++ < 40) requestAnimationFrame(animate);
+            if (frame++ < 35) requestAnimationFrame(animate);
             else ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
         animate();
     }
-
-    toggleSound(enabled) { this.state.settings.sound = enabled; this.saveState(); }
-    toggleAnims(enabled) { this.state.settings.anims = enabled; this.saveState(); }
 
     setupKeyboardListeners() {
         window.addEventListener('keydown', (e) => {
@@ -482,6 +491,4 @@ class CodeQuestApp {
     }
 }
 
-// Aseguramos que 'app' esté disponible globalmente para los onclick de HTML
 window.app = new CodeQuestApp();
-
