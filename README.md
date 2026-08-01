@@ -5,8 +5,11 @@ El proyecto demuestra cómo construir una experiencia de usuario (UX) rica, ráp
 El Juego: Experiencia & Mecánicas
 4 Modos de Juego Adaptativos:
 •Clásico: Evaluación sin restricciones de tiempo para aprendizaje progresivo.
+
 •Contrarreloj: Sesión dinámica de 60 segundos con bonificaciones de tiempo por aciertos.
+
 •Supervivencia: Modalidad de alta exigencia con sistema de 3 vidas.
+
 •Modo Experto: Enmascaramiento dinámico de palabras clave, obligando a deducir el lenguaje según la estructura y los operadores.
 
 Progresión Gamificada: Sistema de puntos de experiencia (XP), niveles escalonados, cálculo de racha máxima (streak) y árbol de logros desbloqueables.
