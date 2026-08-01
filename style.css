@@ -39,9 +39,6 @@ body {
     padding: 15px;
 }
 
-/* ==========================================================================
-   VENTANA CONSOLA RETRO (CONTENEDOR PRINCIPAL)
-   ========================================================================== */
 .retro-window {
     width: 100%;
     max-width: 850px;
@@ -112,17 +109,18 @@ body {
     transition: width 0.3s ease;
 }
 
-/* ==========================================================================
-   PANTALLAS
-   ========================================================================== */
-.screen {
-    display: none;
-    padding: 25px;
-    animation: fadeIn 0.3s ease-in-out;
+.hidden {
+  display: none !important;
 }
 
+/* Oculta las pantallas inactivas del juego */
+.screen {
+  display: none;
+}
+
+/* Solo muestra la pantalla que tenga la clase 'active' */
 .screen.active {
-    display: block;
+  display: block;
 }
 
 @keyframes fadeIn {
@@ -228,9 +226,6 @@ body {
 
 .mode-icon { font-size: 2rem; }
 
-/* ==========================================================================
-   INTERFACE DE JUEGO (VS CODE STYLE)
-   ========================================================================== */
 .game-status-bar {
     display: flex;
     justify-content: space-between;
@@ -347,9 +342,6 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 10px;
 }
-/* ==========================================================================
-   MODO APRENDIZAJE (MEJORADO Y ACCESIBLE)
-   ========================================================================== */
 
 /* Usamos grid responsivo que pasa a 1 sola columna en pantallas pequeñas */
 .learning-layout {
@@ -407,7 +399,6 @@ body {
     word-break: break-word; /* Evita que el texto se desborde */
 }
 
-/* --- MEDIA QUERY PARA MÓVILES (PANTALLAS CHICAS) --- */
 @media (max-width: 600px) {
     .learning-layout {
         grid-template-columns: 1fr; /* Una sola columna: botones arriba, info abajo */
