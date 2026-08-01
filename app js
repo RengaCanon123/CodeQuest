@@ -24,12 +24,29 @@ class CodeQuestApp {
         this.init();
     }
 
-    async init() {
-        await this.loadQuestions();
-        this.setupKeyboardListeners();
-        this.updateUI();
-        this.renderAchievements();
+    // Reemplaza tu método loadQuestions() por este:
+async loadQuestions() {
+    try {
+        const res = await fetch('./questions.json');
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        this.questions = await res.json();
+        console.log("Preguntas cargadas con éxito:", this.questions.length);
+    } catch (e) {
+        console.error("Error cargando preguntas JSON:", e);
+        // Fallback por si el JSON falla en GitHub Pages
+        this.questions = [
+            {
+                id: 1,
+                language: "C++",
+                difficulty: "Fácil",
+                code: "#include <iostream>\n\nint main() {\n    std::cout << \"¡Hola, Mundo!\";\n    return 0;\n}",
+                options: ["C++", "Java", "Rust", "C#"],
+                explanation: "Utiliza la librería cabecera <iostream> y std::cout."
+            }
+        ];
     }
+}
+
 
     // --- MANEJO DE ESTADO LOCALSTORAGE ---
     loadState() {
@@ -121,6 +138,15 @@ class CodeQuestApp {
         const randomIndex = Math.floor(Math.random() * this.questions.length);
         this.currentQuestion = { ...this.questions[randomIndex] };
 
+      
+      const codeElement = document.getElementById('code-snippet');
+      codeElement.textContent = this.currentQuestion.code;
+      codeElement.className = `language-clike`;
+
+if (window.Prism) {
+    Prism.highlightElement(codeElement);
+}
+
         // Aplicar regla de Modo Experto (Ocultar Palabras Clave)
         if (this.selectedMode === 'expert') {
             const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
@@ -129,7 +155,7 @@ class CodeQuestApp {
                 const reg = new RegExp(`\\b${kw}\\b`, 'gi');
                 maskCode = maskCode.replace(reg, "???");
             });
-            this.currentQuestion.code = maskCode;
+         this.currentQuestion.code = maskCode;
         }
 
         // Renderizar Código
