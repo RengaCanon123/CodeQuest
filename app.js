@@ -1,7 +1,3 @@
-/* ==========================================================================
-   CODEQUEST - ENGINE PRINCIPAL MEJORADO
-   ========================================================================== */
-
 class CodeQuestApp {
     constructor() {
         // Límite de preguntas por partida para evitar partidas infinitas
