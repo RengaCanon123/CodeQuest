@@ -482,5 +482,6 @@ class CodeQuestApp {
     }
 }
 
-// Inicializar la variable global
-const app = new CodeQuestApp();
+// Aseguramos que 'app' esté disponible globalmente para los onclick de HTML
+window.app = new CodeQuestApp();
+
