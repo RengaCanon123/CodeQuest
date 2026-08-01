@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -10,14 +10,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Pixelify+Sans:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=999">
+  <link rel="stylesheet" href="style.css?v=2000">
 </head>
 <body>
 
-  <!-- VENTANA RETRO PRINCIPAL (Contenedor que le da el marco blanco y bordes) -->
+  <!-- VENTANA RETRO CONTENEDORA PRINCIPAL -->
   <div class="retro-window">
     
-    <!-- BARRA SUPERIOR DE LA VENTANA -->
+    <!-- BARRA SUPERIOR DE CONSOLA -->
     <div class="window-header">
       <div class="header-controls">
         <span class="btn-dot close"></span>
@@ -44,6 +44,7 @@
         <button class="pixel-btn primary" onclick="app.showModeSelect()">▶️ JUGAR</button>
         <button class="pixel-btn secondary" onclick="app.openLearningMode()">📚 MODO APRENDIZAJE</button>
         <button class="pixel-btn utility" onclick="app.showScreen('screen-stats')">📊 ESTADÍSTICAS</button>
+        <button class="pixel-btn utility" onclick="app.showScreen('screen-settings')">⚙️ AJUSTES</button>
       </div>
     </section>
 
@@ -80,7 +81,7 @@
       <div class="game-status-bar">
         <div>
           <span id="mode-indicator" class="badge medium">CLÁSICO</span>
-          <span id="difficulty-badge" class="badge easy">Fácil (1/10)</span>
+          <span id="difficulty-badge" class="badge easy">Fácil</span>
         </div>
         
         <div style="display: flex; gap: 10px; align-items: center;">
@@ -93,16 +94,13 @@
         </div>
       </div>
 
-      <!-- VENTANA ESTILO VS CODE PARA CÓDIGO -->
       <div class="vscode-window">
         <div class="vscode-tab">📄 snippet.code</div>
         <pre class="vscode-code"><code id="code-snippet"></code></pre>
       </div>
 
-      <!-- OPCIONES -->
       <div id="options-container" class="options-grid"></div>
 
-      <!-- EXPLICACIÓN -->
       <div id="explanation-box" class="explanation-card hidden">
         <div id="explanation-header" class="exp-header"></div>
         <p id="explanation-text"></p>
@@ -124,8 +122,8 @@
     <section id="screen-stats" class="screen">
       <h2 class="pixel-title">📊 Tus Estadísticas</h2>
       <div class="stats-grid">
-        <div class="stat-card"><strong>Partidas Jugadas</strong><span id="st-played">0</span></div>
-        <div class="stat-card"><strong>Preguntas Respondidas</strong><span id="st-answered">0</span></div>
+        <div class="stat-card"><strong>Partidas</strong><span id="st-played">0</span></div>
+        <div class="stat-card"><strong>Preguntas</strong><span id="st-answered">0</span></div>
         <div class="stat-card"><strong>Aciertos</strong><span id="st-correct">0</span></div>
         <div class="stat-card"><strong>Errores</strong><span id="st-wrong">0</span></div>
         <div class="stat-card"><strong>Precisión</strong><span id="st-accuracy">0%</span></div>
@@ -140,10 +138,21 @@
       <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver</button>
     </section>
 
+    <!-- AJUSTES -->
+    <section id="screen-settings" class="screen">
+      <h2 class="pixel-title">⚙️ Ajustes</h2>
+      <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0; text-align: left;">
+        <button class="pixel-btn danger" onclick="if(confirm('¿Seguro que quieres borrar todo tu progreso?')) { localStorage.clear(); location.reload(); }">
+          🗑️ Reiniciar Todo el Progreso
+        </button>
+      </div>
+      <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅️ Volver al Menú</button>
+    </section>
+
   </div> <!-- FIN DE RETRO-WINDOW -->
 
   <canvas id="confetti-canvas"></canvas>
 
-  <script src="app.js?v=999"></script>
+  <script src="app.js?v=2000"></script>
 </body>
 </html>
