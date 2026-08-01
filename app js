@@ -1,0 +1,406 @@
+class CodeQuestApp {
+    constructor() {
+        this.questions = [];
+        this.currentQuestion = null;
+        this.selectedMode = 'classic';
+        this.score = 0;
+        this.streak = 0;
+        this.timer = null;
+        this.timeLeft = 60;
+        this.lives = 3;
+
+        // Estado persistente
+        this.state = this.loadState();
+        
+        // Cargar Lenguajes para Modo Aprendizaje
+        this.learningData = {
+            "Python": { creator: "Guido van Rossum", year: 1991, use: "IA, Web, Ciencia de datos", trivia: "Su nombre no viene de la serpiente, sino del grupo cómico Monty Python." },
+            "C++": { creator: "Bjarne Stroustrup", year: 1985, use: "Videojuegos, Sistemas operativos", trivia: "Originalmente se llamaba 'C con Clases'." },
+            "Java": { creator: "James Gosling", year: 1995, use: "Empresarial, Android", trivia: "Inicialmente se llamó Oak." },
+            "JavaScript": { creator: "Brendan Eich", year: 1995, use: "Desarrollo Web Frontend/Backend", trivia: "Fue creado en solo 10 días." },
+            "Rust": { creator: "Graydon Hoare / Mozilla", year: 2010, use: "Sistemas de alto rendimiento", trivia: "Nombrado así por un hongo extremadamente resistente." }
+        };
+
+        this.init();
+    }
+
+    async init() {
+        await this.loadQuestions();
+        this.setupKeyboardListeners();
+        this.updateUI();
+        this.renderAchievements();
+    }
+
+    // --- MANEJO DE ESTADO LOCALSTORAGE ---
+    loadState() {
+        const defaultState = {
+            xp: 0,
+            level: 1,
+            played: 0,
+            answered: 0,
+            correct: 0,
+            wrong: 0,
+            maxStreak: 0,
+            settings: { sound: true, anims: true },
+            achievements: [],
+            langStats: {}
+        };
+        const saved = localStorage.getItem('codequest_save');
+        return saved ? JSON.parse(saved) : defaultState;
+    }
+
+    saveState() {
+        localStorage.setItem('codequest_save', JSON.stringify(this.state));
+        this.updateUI();
+    }
+
+    resetProgress() {
+        if (confirm("¿Seguro que deseas reiniciar todo tu progreso? Esta acción es irreversible.")) {
+            localStorage.removeItem('codequest_save');
+            this.state = this.loadState();
+            this.saveState();
+            this.showScreen('screen-home');
+        }
+    }
+
+    // --- NAVEGACIÓN Y PANTALLAS ---
+    showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if (screenId === 'screen-stats') this.renderStats();
+    }
+
+    showModeSelect() {
+        this.showScreen('screen-modes');
+    }
+
+    // --- BBDD PREGUNTAS ---
+    async loadQuestions() {
+        try {
+            const res = await fetch('questions.json');
+            this.questions = await res.json();
+        } catch (e) {
+            console.error("Error cargando preguntas JSON:", e);
+        }
+    }
+
+    // --- MOTOR DEL JUEGO ---
+    startGame(mode) {
+        this.selectedMode = mode;
+        this.streak = 0;
+        this.timeLeft = 60;
+        this.lives = 3;
+        
+        document.getElementById('mode-indicator').innerText = mode.toUpperCase();
+        document.getElementById('timer-box').style.display = (mode === 'time') ? 'block' : 'none';
+        document.getElementById('lives-box').style.display = (mode === 'survival') ? 'block' : 'none';
+
+        if (mode === 'time') this.startTimer();
+
+        this.showScreen('screen-game');
+        this.nextQuestion();
+    }
+
+    startTimer() {
+        clearInterval(this.timer);
+        this.timer = setInterval(() => {
+            this.timeLeft--;
+            document.getElementById('game-timer').innerText = this.timeLeft;
+            if (this.timeLeft <= 0) {
+                clearInterval(this.timer);
+                alert("¡Tiempo Agotado! Game Over ⏱️");
+                this.endGame();
+            }
+        }, 1000);
+    }
+
+    nextQuestion() {
+        document.getElementById('explanation-box').classList.add('hidden');
+        
+        // Seleccionar pregunta aleatoria
+        const randomIndex = Math.floor(Math.random() * this.questions.length);
+        this.currentQuestion = { ...this.questions[randomIndex] };
+
+        // Aplicar regla de Modo Experto (Ocultar Palabras Clave)
+        if (this.selectedMode === 'expert') {
+            const keywords = ["include", "function", "def", "public", "class", "const", "let", "var", "import", "select"];
+            let maskCode = this.currentQuestion.code;
+            keywords.forEach(kw => {
+                const reg = new RegExp(`\\b${kw}\\b`, 'gi');
+                maskCode = maskCode.replace(reg, "???");
+            });
+            this.currentQuestion.code = maskCode;
+        }
+
+        // Renderizar Código
+        const codeElement = document.getElementById('code-snippet');
+        codeElement.textContent = this.currentQuestion.code;
+        codeElement.className = `language-clike`;
+        Prism.highlightElement(codeElement);
+
+        // Renderizar Badges
+        const diffBadge = document.getElementById('difficulty-badge');
+        diffBadge.innerText = this.currentQuestion.difficulty;
+        diffBadge.className = `badge ${this.currentQuestion.difficulty.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
+
+        document.getElementById('game-streak').innerText = this.streak;
+
+        // Mezclar y Renderizar Opciones
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        this.currentQuestion.options.forEach((option, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span>[${idx + 1}]</span> ${option}`;
+            btn.onclick = () => this.handleAnswer(option, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    handleAnswer(selectedOption, clickedBtn) {
+        // Deshabilitar todos los botones temporalmente
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.onclick = null);
+
+        const isCorrect = selectedOption === this.currentQuestion.language;
+        this.state.answered++;
+
+        // Registro por Lenguaje
+        const lang = this.currentQuestion.language;
+        this.state.langStats[lang] = (this.state.langStats[lang] || 0) + (isCorrect ? 1 : 0);
+
+        if (isCorrect) {
+            clickedBtn.classList.add('correct');
+            this.playSound(587.33, 'triangle', 0.15); // Nota Re retro
+            this.streak++;
+            if (this.streak > this.state.maxStreak) this.state.maxStreak = this.streak;
+            this.state.correct++;
+
+            // Sumar XP según Dificultad
+            const xpGained = this.currentQuestion.difficulty === 'Fácil' ? 10 : (this.currentQuestion.difficulty === 'Medio' ? 20 : 40);
+            this.addXP(xpGained);
+
+            if (this.selectedMode === 'time') this.timeLeft += 3;
+            if (this.state.settings.anims) this.triggerConfetti();
+
+        } else {
+            clickedBtn.classList.add('wrong');
+            this.playSound(150, 'sawtooth', 0.3); // Sonido Error
+            this.streak = 0;
+            this.state.wrong++;
+
+            // Resaltar la correcta
+            allBtns.forEach(b => {
+                if (b.innerText.includes(this.currentQuestion.language)) b.classList.add('correct');
+            });
+
+            if (this.selectedMode === 'survival') {
+                this.lives--;
+                document.getElementById('game-lives').innerText = this.lives;
+                if (this.lives <= 0) {
+                    setTimeout(() => { alert("¡Perdiste todas tus vidas! Game Over 👾"); this.endGame(); }, 500);
+                    return;
+                }
+            }
+        }
+
+        // Mostrar Explicación
+        const expBox = document.getElementById('explanation-box');
+        const expHeader = document.getElementById('explanation-header');
+        const expText = document.getElementById('explanation-text');
+
+        expHeader.innerText = isCorrect ? "✨ ¡Correcto!" : `❌ Incorrecto. Era ${this.currentQuestion.language}`;
+        expHeader.style.color = isCorrect ? "var(--correct-border)" : "var(--wrong-border)";
+        expText.innerText = this.currentQuestion.explanation;
+        expBox.classList.remove('hidden');
+
+        this.checkAchievements();
+        this.saveState();
+    }
+
+    endGame() {
+        clearInterval(this.timer);
+        this.state.played++;
+        this.saveState();
+        this.showScreen('screen-home');
+    }
+
+    // --- SITEMA DE EXPERIENCIA Y NIVEL ---
+    addXP(points) {
+        this.state.xp += points;
+        const nextLevelXP = this.state.level * 100;
+        if (this.state.xp >= nextLevelXP) {
+            this.state.level++;
+            alert(`🎉 ¡SUBISTE DE NIVEL! Ahora eres Nivel ${this.state.level}`);
+        }
+    }
+
+    updateUI() {
+        document.getElementById('nav-level').innerText = `NV. ${this.state.level}`;
+        const currentLevelTarget = this.state.level * 100;
+        const progress = (this.state.xp % 100);
+        document.getElementById('mini-xp-fill').style.width = `${progress}%`;
+    }
+
+    // --- LOGROS ---
+    checkAchievements() {
+        const list = [
+            { id: 'first_win', title: 'Primer Acierto', icon: '⭐', condition: s => s.correct >= 1 },
+            { id: 'streak_10', title: 'Racha Pixelada (10)', icon: '🔥', condition: s => s.maxStreak >= 10 },
+            { id: 'master_50', title: 'Coder Creador (50 Aciertos)', icon: '🏆', condition: s => s.correct >= 50 }
+        ];
+
+        list.forEach(ach => {
+            if (!this.state.achievements.includes(ach.id) && ach.condition(this.state)) {
+                this.state.achievements.push(ach.id);
+                alert(`🏆 ¡Logro Desbloqueado!: ${ach.title}`);
+            }
+        });
+    }
+
+    renderAchievements() {
+        const container = document.getElementById('achievements-container');
+        container.innerHTML = '';
+        const allAchievements = [
+            { id: 'first_win', title: 'Primer Acierto', desc: 'Responde acertadamente 1 pregunta.', icon: '⭐' },
+            { id: 'streak_10', title: 'Racha Pixelada', desc: 'Consigue una racha de 10 aciertos.', icon: '🔥' },
+            { id: 'master_50', title: 'Coder Creador', desc: 'Responde 50 preguntas correctamente.', icon: '🏆' }
+        ];
+
+        allAchievements.forEach(ach => {
+            const unlocked = this.state.achievements.includes(ach.id);
+            const card = document.createElement('div');
+            card.className = `achievement-card ${unlocked ? 'unlocked' : ''}`;
+            card.innerHTML = `
+                <div class="ach-icon">${ach.icon}</div>
+                <div>
+                    <strong>${ach.title} ${unlocked ? '✅' : '🔒'}</strong>
+                    <p style="font-size: 0.8rem;">${ach.desc}</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // --- ESTADÍSTICAS ---
+    renderStats() {
+        document.getElementById('st-played').innerText = this.state.played;
+        document.getElementById('st-answered').innerText = this.state.answered;
+        document.getElementById('st-correct').innerText = this.state.correct;
+        document.getElementById('st-wrong').innerText = this.state.wrong;
+        
+        const acc = this.state.answered > 0 ? Math.round((this.state.correct / this.state.answered) * 100) : 0;
+        document.getElementById('st-accuracy').innerText = `${acc}%`;
+        document.getElementById('st-streak').innerText = this.state.maxStreak;
+        document.getElementById('st-level').innerText = this.state.level;
+        document.getElementById('st-xp').innerText = `${this.state.xp} XP`;
+
+        // Determinar lenguaje con más aciertos
+        let topLang = '-';
+        let max = 0;
+        for (const [lang, count] of Object.entries(this.state.langStats)) {
+            if (count > max) { max = count; topLang = lang; }
+        }
+        document.getElementById('st-fav-lang').innerText = topLang;
+    }
+
+    // --- MODO APRENDIZAJE ---
+    openLearningMode() {
+        this.showScreen('screen-learning');
+        const sidebar = document.getElementById('lang-list');
+        sidebar.innerHTML = '';
+
+        Object.keys(this.learningData).forEach(lang => {
+            const item = document.createElement('div');
+            item.className = 'lang-item';
+            item.innerText = lang;
+            item.onclick = () => this.showLearningDetail(lang, item);
+            sidebar.appendChild(item);
+        });
+    }
+
+    showLearningDetail(lang, element) {
+        document.querySelectorAll('.lang-item').forEach(i => i.classList.remove('active'));
+        element.classList.add('active');
+
+        const info = this.learningData[lang];
+        const detailContainer = document.getElementById('lang-detail-content');
+        detailContainer.innerHTML = `
+            <h3>💻 ${lang}</h3>
+            <p><strong>Creador:</strong> ${info.creator} (${info.year})</p>
+            <p><strong>Uso principal:</strong> ${info.use}</p>
+            <hr style="margin: 10px 0;">
+            <p><strong>💡 Curiosidad:</strong> ${info.trivia}</p>
+        `;
+    }
+
+    // --- SINTETIZADOR AUDIO RETRO ---
+    playSound(freq, type = 'sine', duration = 0.1) {
+        if (!this.state.settings.sound) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
+            osc.stop(ctx.currentTime + duration);
+        } catch (e) { }
+    }
+
+    // --- CONFETI EN CANVAS ---
+    triggerConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = Array.from({ length: 40 }, () => ({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 12,
+            vy: (Math.random() - 0.5) * 12,
+            size: Math.random() * 8 + 4,
+            color: ['#FFF3A6', '#BEEBFF', '#A8E6CF', '#FFAAA5'][Math.floor(Math.random() * 4)]
+        }));
+
+        let frame = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size); // Pixel confeti cuadrado
+            });
+            if (frame++ < 50) requestAnimationFrame(animate);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        animate();
+    }
+
+    // --- CONFIGURACIÓN ---
+    toggleSound(enabled) { this.state.settings.sound = enabled; this.saveState(); }
+    toggleAnims(enabled) { this.state.settings.anims = enabled; this.saveState(); }
+
+    // --- ATAJOS TECLADO ---
+    setupKeyboardListeners() {
+        window.addEventListener('keydown', (e) => {
+            const gameActive = document.getElementById('screen-game').classList.contains('active');
+            if (!gameActive) return;
+
+            if (['1', '2', '3', '4'].includes(e.key)) {
+                const index = parseInt(e.key) - 1;
+                const btns = document.querySelectorAll('.option-btn');
+                if (btns[index]) btns[index].click();
+            }
+        });
+    }
+}
+
+// Inicializar la aplicación
+const app = new CodeQuestApp();
