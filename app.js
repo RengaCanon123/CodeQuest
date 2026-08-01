@@ -542,4 +542,28 @@ class CodeQuestApp {
     }
 }
 
-window.app = new CodeQuestApp();
+window.app = {
+    showScreen: function(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(screenId);
+        if (target) target.classList.add('active');
+    },
+    showModeSelect: function() {
+        this.showScreen('screen-modes');
+    },
+    openLearningMode: function() {
+        this.showScreen('screen-learning');
+        // Tu lógica para cargar los lenguajes...
+    },
+    startGame: function(mode) {
+        this.showScreen('screen-game');
+        // Tu lógica para iniciar partida...
+    },
+    endGame: function(msg) {
+        this.showScreen('screen-home');
+    },
+    nextQuestion: function() {
+        // Tu lógica de siguiente pregunta...
+    }
+};
+
