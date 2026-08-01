@@ -78,27 +78,41 @@
             </div>
             <button class="pixel-btn cancel" onclick="app.showScreen('screen-home')">⬅ Volver</button>
         </section>
+<!-- PANTALLA DE JUEGO -->
+<section id="screen-game" class="screen">
+  <!-- Cabecera de la partida -->
+  <div class="game-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div>
+      <span id="mode-indicator" class="badge">CLÁSICO</span>
+      <span id="difficulty-badge" class="badge">Fácil (1/10)</span>
+    </div>
+    
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <div id="timer-box" style="display: none;">⏱️ <span id="game-timer">60</span>s</div>
+      <div id="lives-box" style="display: none;">❤️ <span id="game-lives">3</span></div>
+      
+      <!-- BOTÓN DE SALIR DE LA PARTIDA -->
+      <button class="pixel-btn secondary" onclick="app.endGame('Partida cancelada')" style="padding: 5px 10px; font-size: 0.8rem;">
+        🚪 SALIR
+      </button>
+    </div>
+  </div>
 
-        <!-- PANTALLA DE JUEGO -->
-        <section id="screen-game" class="screen">
-            <button class="pixel-btn secondary" onclick="app.endGame('Partida cancelada')">
-  🚪 SALIR
-</button>
-            <div class="game-status-bar">
-                <div class="stat-box">
-                    <span id="mode-indicator">CLÁSICO</span>
-                    <span id="difficulty-badge" class="badge easy">Fácil</span>
-                </div>
-                <div class="stat-box" id="timer-box" style="display:none;">
-                    ⏱️ <span id="game-timer">60</span>s
-                </div>
-                <div class="stat-box" id="lives-box" style="display:none;">
-                    ❤️ <span id="game-lives">3</span>
-                </div>
-                <div class="stat-box">
-                    🔥 Racha: <span id="game-streak">0</span>
-                </div>
-            </div>
+  <!-- Fragmento de Código -->
+  <div class="code-container">
+    <pre><code id="code-snippet"></code></pre>
+  </div>
+
+  <!-- Opciones de Respuesta -->
+  <div id="options-container" class="options-grid"></div>
+
+  <!-- Caja de Explicación / Retroalimentación -->
+  <div id="explanation-box" class="explanation-card hidden">
+    <h3 id="explanation-header"></h3>
+    <p id="explanation-text"></p>
+    <button class="pixel-btn primary" onclick="app.nextQuestion()">Siguiente ➔</button>
+  </div>
+</section>
 
             <!-- Editor de Código Falso inspirado en VS Code -->
             <div class="vscode-window">
